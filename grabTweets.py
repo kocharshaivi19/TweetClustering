@@ -62,6 +62,37 @@ class cricketlistener(StreamListener):
         if status == 420:
             return False
 
+
+def sentifilter(query):
+    print query
+    try:
+        if query == 'All' or query == '' or query == None:
+            elasticQuery = {
+                'match_all':{}
+            }
+        else:
+            elasticQuery = {
+                "query_string": {
+                    "query": query.lower()
+                }
+            }
+        tweets = es.search(index='crickettweets',doc_type="Clustering", body=
+                            {"sort" :[ {"id" : {"order" : "desc"} }], "from": 0, "size": 1000, "query": elasticQuery})
+        latlonginfo = []
+        for tweet in tweets['hits']['hits']:
+            info = {}
+            info['title'] = tweet['_source']['title']
+            info['username'] = tweet['_source']['username']
+            info['user'] = tweet['_source']['user']
+            info['hashtags'] = tweet['_source']['hashtags']
+            info['retweet_count'] = tweet['_source']['retweet_count']
+            latlonginfo.append(info)
+            print (info)
+        print latlonginfo
+        return latlonginfo
+    except Exception as e:
+        print e
+
 if __name__ == '__main__':
     print("Twitter Stream Begin!!")
     l = cricketlistener()
